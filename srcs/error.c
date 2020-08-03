@@ -3,32 +3,30 @@
 /*                                                        :::      ::::::::   */
 /*   error.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: glecler <glecler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ravernhe <ravernhe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/11/30 17:28:06 by glecler           #+#    #+#             */
-/*   Updated: 2019/11/30 17:34:37 by glecler          ###   ########.fr       */
+/*   Created: 2019/09/17 17:56:12 by ravernhe          #+#    #+#             */
+/*   Updated: 2019/11/30 17:33:39 by ravernhe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/wolf.h"
 
-void	ft_error(int error_code)
+void	ft_error(int i)
 {
-	if (error_code == 1)
-		ft_putstr("error: wrong character in map file\n");
-	else if (error_code == 2)
-		ft_putstr("error: malloc failed\n");
-	else if (error_code == 3)
-		ft_putstr("error: bad spawn #\n");
-	else if (error_code == 4)
-		ft_putstr("error: empty file\n");
-	else if (error_code == 5)
-		ft_putstr("error: file not found\n");
-	else if (error_code == 6)
-		ft_putstr("error: bad spawn\n");
-	else if (error_code == 7)
-		ft_putstr("error : map is not valid\n");
+	if (i == 1)
+		ft_putstr("error: one of the map file's character is wrong");
+	else if (i == 2)
+		ft_putstr("error: a malloc failed");
+	else if (i == 3)
+		ft_putstr("error: spawn number is wrong. You must have ONE spawn");
+	else if (i == 4)
+		ft_putstr("error: empty file");
+	else if (i == 5)
+		ft_putstr("error: file not found");
+	else if (i == 6)
+		ft_putstr("error: spawn is in the wall");
 	else
-		ft_putstr("error\n");
+		ft_putstr("error");
 	exit(0);
 }

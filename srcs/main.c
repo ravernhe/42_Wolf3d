@@ -3,24 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: glecler <glecler@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ravernhe <ravernhe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/11/30 17:28:06 by glecler           #+#    #+#             */
-/*   Updated: 2019/12/02 14:50:19 by glecler          ###   ########.fr       */
+/*   Created: 2019/11/30 17:28:06 by ravernhe          #+#    #+#             */
+/*   Updated: 2019/12/02 14:50:19 by mamisdra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/wolf.h"
 
-void	ft_init_key(t_key *key)
-{
-	key->forw = 0;
-	key->back = 0;
-	key->right = 0;
-	key->left = 0;
-}
-
-int		**ft_fill_map_struct(t_var var)
+int		**fill_map_struct(t_var var)
 {
 	int		**map;
 	int		x_x2_y[3];
@@ -49,7 +41,7 @@ int		**ft_fill_map_struct(t_var var)
 	return (map);
 }
 
-void	ft_player_data_set(t_player *player, t_var *var)
+void	player_data_set(t_player *player, t_var *var)
 {
 	int x;
 	int y;
@@ -62,8 +54,8 @@ void	ft_player_data_set(t_player *player, t_var *var)
 		{
 			if (var->m[y][x] == 7)
 			{
-				var->spawn.x = BSD * x + BSD / 2;
-				var->spawn.y = BSD * y + BSD / 2;
+				var->spawn.x = BLOCK_SIZE * x + BLOCK_SIZE / 2;
+				var->spawn.y = BLOCK_SIZE * y + BLOCK_SIZE / 2;
 				player->pos.x = var->spawn.x;
 				player->pos.y = var->spawn.y;
 			}
@@ -71,11 +63,25 @@ void	ft_player_data_set(t_player *player, t_var *var)
 		}
 		y++;
 	}
-	player->height = BSD / 2;
-	player->angle = 180;
+	player->height = BLOCK_SIZE / 2;
+	player->fov = 60;
+	player->angle = 210;
 }
 
-void	ft_is_first_char_zero(char *str)
+void	init_key_move(t_var *var)
+{
+	var->key.left = SDLK_a;
+	var->key.right = SDLK_d;
+	var->key.forw = SDLK_w;
+	var->key.back = SDLK_s;
+	var->select_key = 0;
+	var->key_id[0] = 3;
+	var->key_id[1] = 0;
+	var->key_id[2] = 22;
+	var->key_id[3] = 18;
+}
+
+void	is_first_char_zero(char *str)
 {
 	int		fd;
 	int		ret;
@@ -86,7 +92,7 @@ void	ft_is_first_char_zero(char *str)
 	buff[ret] = 0;
 	close(fd);
 	if (buff[0] == 0)
-		ft_error(7);
+		ft_error(44);
 }
 
 int		main(int ac, char **av)
@@ -100,14 +106,15 @@ int		main(int ac, char **av)
 		ft_putstr("usage : ./wolf3d [map]\n");
 		exit(0);
 	}
-	ft_init_key(&(var.key));
-	ft_is_first_char_zero(av[1]);
-	ft_parsing_map(fd, &var);
-	var.m = ft_fill_map_struct(var);
-	ft_player_data_set(&player, &var);
-	ft_init_mlx(&var);
-	ft_load_texture(&var);
+	is_first_char_zero(av[1]);
+	init_key_move(&var);
+	parsing_map(fd, &var);
+	var.m = fill_map_struct(var);
+	player_data_set(&player, &var);
+	ft_init_sdl(&var);
+	open_wall_texture(&var);
+	open_img_opt_button(&var);
 	close(fd);
-	ft_display(&var, &player);
+	display(&var, &player);
 	return (0);
 }

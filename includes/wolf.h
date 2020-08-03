@@ -3,17 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   wolf.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: glecler <marvin@42.fr>                     +#+  +:+       +#+        */
+/*   By: ravernhe <ravernhe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/07/27 12:50:40 by glecler           #+#    #+#             */
-/*   Updated: 2020/07/27 13:44:16 by glecler          ###   ########.fr       */
+/*   Created: 2019/11/30 17:28:06 by ravernhe          #+#    #+#             */
+/*   Updated: 2019/12/02 14:55:02 by mamisdra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WOLF_H
 # define WOLF_H
-
-# define BSI 128
+# define WALL '1'
+# define COUL '0'
+# define SPAWN '7'
+# define BS_INT 128
+# define BLOCK_SIZE 128.00
+# define BS 128
 # define BSD 128.00
 # define SIZE_X 960
 # define SIZE_Y 600
@@ -23,17 +27,13 @@
 # define SIZE_Y_D 600.00
 # define SIZE_X_D2 480.00
 # define SIZE_Y_D2 300.00
-# define LEFT 123
-# define RIGHT 124
-# define FORWARD 126
-# define BACK 125
+# define ANGLE_BEGIN 30.00
 # define RAD 0.0174532925
 # define DIV_60_SIZE 0.0625
-
-# include "./libft/includes/libft.h"
+# include "../libft/includes/libft.h"
+# include "SDL2/SDL.h"
+# include "math.h"
 # include <math.h>
-# include "minilibx_macos/mlx.h"
-# include <fcntl.h>
 
 typedef struct	s_key
 {
@@ -43,34 +43,20 @@ typedef struct	s_key
 	int			left;
 }				t_key;
 
-typedef struct	s_dimensions
+typedef struct	s_sdl
 {
-	int x;
-	int y;
-	int width;
-	int height;
-}				t_dimensions;
+	SDL_Window		*window;
+	SDL_Renderer	*render;
+	SDL_Event		event;
+}				t_sdl;
 
-typedef struct	s_mlx_img
+typedef struct	s_rgb
 {
-	void	*img_ptr;
-	char	*img_addr;
-	int		bpp;
-	int		endian;
-	int		s_l;
-}				t_mlx_img;
-
-typedef struct	s_mlx
-{
-	void	*mlx_ptr;
-	void	*win_ptr;
-	void	*img_ptr;
-	char	*img_addr;
-	int		bpp;
-	int		endian;
-	int		s_l;
-	int		event_button[2];
-}				t_mlx;
+	int			r;
+	int			g;
+	int			b;
+	int			a;
+}				t_rgb;
 
 typedef struct	s_pos
 {
@@ -92,19 +78,23 @@ typedef struct	s_inter
 
 typedef struct	s_var
 {
-	int				x_max;
-	int				y_max;
-	int				texture_id;
-	int				x_bloc;
-	int				menu;
-	int				**m;
-	char			**map;
-	t_mlx			mlx;
-	t_pos			spawn;
-	unsigned char	rgb[4];
-	t_key			key;
-	t_mlx_img		wall_texture[4];
-	void			*black_screen;
+	int			x_max;
+	int			y_max;
+	int			select_key;
+	int			i;
+	int			texture_id;
+	int			on;
+	int			menu_is_act;
+	int			key_id[4];
+	int			**m;
+	char		**map;
+	t_sdl		sdl;
+	t_pos		spawn;
+	t_rgb		color;
+	Uint32		*wall_uint[4];
+	t_key		key;
+	SDL_Surface	*wall_texture[4];
+	SDL_Surface	*key_texture[41];
 }				t_var;
 
 typedef struct	s_player
@@ -115,111 +105,86 @@ typedef struct	s_player
 	int			height;
 }				t_player;
 
-typedef struct	s_textures
+typedef struct	s_surf
 {
-	void *main_menu;
-	void *menu;
-	void *menu_blanc;
-	void *jouer;
-	void *jouer_blanc;
-	void *quitter;
-	void *quitter_blanc;
-}				t_textures;
-
-typedef struct	s_hook_param
-{
-	t_var		*var;
-	t_player	*pl;
-	t_textures	textures;
-}				t_hook_param;
+	SDL_Surface *main_menu;
+	SDL_Surface *dirt_bg;
+	SDL_Surface *menu;
+	SDL_Surface *menu_o;
+	SDL_Surface *done;
+	SDL_Surface *done_o;
+	SDL_Surface *reset;
+	SDL_Surface *reset_o;
+}				t_surf;
 
 /*
 ** main.c
 */
 
-void			ft_init_key(t_key *key);
-int				**ft_fill_map_struct(t_var var);
-void			ft_player_data_set(t_player *player, t_var *var);
-void			ft_is_first_char_zero(char *str);
+void			init_key_move(t_var *var);
 
 /*
-** tools.c
+** display_tool_2.c
 */
 
-void			ft_set_x_y(int *x_y, int x, int y);
-void			ft_init_inter_variables(t_inter *inter, t_player *player);
-void			ft_init_a_b_alpha(t_pos *a, t_pos *b, double *alpha);
-void			ft_motion_menu_zero(int x, int y, t_hook_param *hook_param);
-void			ft_set_rgb(unsigned char *rgb, unsigned char r,
-					unsigned char g, unsigned char b);
+int				launch_ray(t_player *pl, t_var *var, double al, double beta);
 
 /*
-** raycasting.c
+** display_tool.c
 */
-
-int				ft_launch_ray(t_player *pl, t_var *var, double al,
-					double beta);
-void			ft_calc_hei_column(t_var *var, t_inter *inter,
-					t_player *player);
-void			ft_draw_floor(t_var *var, t_inter *inter);
-void			ft_raycasting(t_var *var, t_player *player,
-					t_textures textures);
+void			init_a_b_alpha(t_pos *a, t_pos *b, double *alpha);
+void			print_screen(t_var *var, t_player *player);
 
 /*
-** raycasting_tool.c
+** menu_2.c
 */
 
-void			ft_intersec_1(t_pos *a, t_var *var, t_player *player,
-					double alpha);
-void			ft_intersec_2(t_pos *b, t_var *var, t_player *player,
-					double alpha);
-void			ft_calc_dist(double *dist, t_player *player, t_pos a,
-					t_pos b);
-double			ft_dist_0_1(t_var *var, double alpha, double beta, t_pos b);
-double			ft_dist_1_0(t_var *var, double alpha, double beta, t_pos a);
+void			buttons_menu_options(t_var *var, int i);
+void			buttons_menu_play(t_var *var, int i);
+void			change_key(t_var *var, t_player *player, t_surf s);
+void			choose_key(t_var *var, t_player *player, t_surf s);
+
+/*
+** put_surface.c
+*/
+
+void			put_surface(t_var *var, SDL_Surface *s, SDL_Rect dimensions);
+
+/*
+** menu.c
+*/
+
+void			option_menu(int *x_y, t_var *var, t_player *player, t_surf s);
+void			ft_menu(t_var *var, t_player *player, t_surf s, int t);
+void			print_button(int *x_y, t_var *var, t_player *player, t_surf s);
+
+/*
+** menu_3.c
+*/
+
+double			dist_0_1(t_var *var, double alpha, double beta, t_pos b);
+double			dist_1_0(t_var *var, double alpha, double beta, t_pos a);
+int				change_texture_key(int nk);
+void			put_image(t_var *var, char *name, SDL_Rect dimensions);
+void			put_image_opt(t_var *var, int id, SDL_Rect dimensions);
+
+/*
+** move.c
+*/
+
+void			ft_move(int key, t_player *pla, SDL_Renderer *ren, t_var *var);
+
+/*
+** map_parse.c
+*/
+
+void			parsing_map(int fd, t_var *var);
 
 /*
 ** display.c
 */
 
-void			ft_display(t_var *var, t_player *pl);
-void			ft_menu(t_var *var, t_textures s);
-
-/*
-** mlx_tools.c
-*/
-
-void			ft_free_xpm(t_var *var, t_textures textures);
-void			ft_mlx_erase_screen(t_var *var);
-void			ft_free_var(t_var *var);
-void			ft_init_mlx(t_var *var);
-void			ft_clean_quit(t_textures s, t_var *var, t_player *pl);
-
-/*
-** play.c
-*/
-
-int				ft_play(t_hook_param *hook_param);
-void			ft_backward(t_player *pl, double angle, int speed, int **map);
-void			ft_forward(t_player *pl, double angle, int speed, int **map);
-int				ft_col(int **map, double x, double y);
-
-/*
-** map_parsing.c
-*/
-
-void			ft_parsing_map(int fd, t_var *var);
-void			ft_init_var(t_var *var);
-int				ft_check_char(char *buff);
-/*
-** event_hooks.c
-*/
-
-int				ft_get_key(int key, t_hook_param *hook_param);
-int				ft_get_mouse(int button, int x, int y, void *param);
-int				ft_get_motion(int x, int y, void *param);
-int				ft_exit_hook(int x, int y, void *param);
-int				ft_get_key_release(int key, t_hook_param *hook_param);
+void			display(t_var *var, t_player *pl);
 
 /*
 ** error.c
@@ -228,30 +193,44 @@ int				ft_get_key_release(int key, t_hook_param *hook_param);
 void			ft_error(int i);
 
 /*
-** img_load.c
+** texture.c
 */
 
-void			ft_load_texture(t_var *var);
-void			ft_load_xpm(t_var *var, t_textures *s);
-void			ft_load_tex_addr(t_var *var);
+t_rgb			get_color_from_surface(Uint32 x);
+Uint32			set_pixel_color(t_rgb c);
+t_rgb			set_color(int r, int g, int b, int a);
+void			open_wall_texture(t_var *var);
 
 /*
-** parsing_check.c
+** ft_init_sdl.c
 */
 
-int				ft_check_space_between_digit(char *str);
-int				ft_check_spawn(char *str);
-void			ft_put_wall_around_the_map(int hei, int len, t_var *var);
-void			ft_check_map(t_var *var, int ret, size_t nb_char, char *str);
+void			ft_init_sdl(t_var *var);
 
 /*
-** img_tools.c
+** open_textures_buttons.c
 */
 
-t_dimensions	ft_mlx_img_dimensions(int x, int y, int w, int h);
-void			ft_put_image(t_var *var, void *img_ptr, t_dimensions dim);
-int				ft_put_pixel_img(t_var *var, int x, int y, unsigned char *rgb);
-int				ft_get_rgb_from_img(t_mlx_img mlx_img, int x, int y,
-					unsigned char *rgb);
+void			open_img_opt_button(t_var *var);
+
+/*
+** parse_check.c
+*/
+
+void			check_map(t_var *var, int ret, size_t nb_char, char *str);
+
+/*
+** sdl_tools.c
+*/
+
+SDL_Rect		create_sdl_rect(int x, int y, int w, int h);
+void			sdl_clean_screen(SDL_Renderer *rend);
+void			ft_clean_quit(t_surf s, t_var *v, t_player *pl);
+
+/*
+** key_gestion.c
+*/
+
+void			key_gestion(t_var *var, t_player *pl, t_surf s);
 
 #endif
